@@ -15,6 +15,20 @@ use Illuminate\Support\Facades\Route;
 | em routes/console.php); as rotas /import são um atalho HTTP para o mesmo fluxo.
 */
 
+// Índice da API: ajuda a quem abre /api no navegador a encontrar os recursos.
+Route::get('/', fn () => response()->json([
+    'app' => config('app.name'),
+    'status' => 'ok',
+    'resources' => [
+        'hotels' => url('/api/hotels'),
+        'rooms' => url('/api/rooms'),
+        'reserves' => url('/api/reserves'),
+        'restaurants' => url('/api/restaurants'),
+        'city-graph' => url('/api/city-graph'),
+    ],
+    'docs' => 'Veja o README.md para a lista completa de endpoints.',
+]));
+
 Route::prefix('import')->group(function () {
     Route::post('/all', [ImportController::class, 'all']);
     Route::post('/hotels', [ImportController::class, 'hotels']);
