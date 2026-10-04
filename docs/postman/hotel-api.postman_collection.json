@@ -1,0 +1,524 @@
+{
+  "info": {
+    "name": "Hotel API",
+    "description": "Collection da Hotel API: importação de XML, hotéis, quartos, reservas e recomendação de restaurantes (Dijkstra).\n\nVariável: base_url (padrão http://localhost:8000/api).\nFluxo básico: 1) Import > Importar tudo; 2) Rooms > Verificar disponibilidade; 3) Reserves > Criar reserva (201) e depois Criar reserva com conflito (409); 4) Restaurants > Recomendações para o hotel 1.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "hotel-api-collection"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000/api"
+    }
+  ],
+  "item": [
+    {
+      "name": "Import",
+      "item": [
+        {
+          "name": "Importar tudo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/import/all"
+          }
+        },
+        {
+          "name": "Importar hotéis",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/import/hotels"
+          }
+        },
+        {
+          "name": "Importar quartos",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/import/rooms"
+          }
+        },
+        {
+          "name": "Importar reservas",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/import/reserves"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Hotels",
+      "item": [
+        {
+          "name": "Listar hotéis",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/hotels"
+          }
+        },
+        {
+          "name": "Detalhar hotel",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/hotels/1"
+          }
+        },
+        {
+          "name": "Criar hotel",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/hotels",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": 9001,\n  \"name\": \"Hotel Teste Postman\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Atualizar hotel",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/hotels/9001",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Hotel Teste Postman (editado)\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Remover hotel",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/hotels/9001"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Rooms",
+      "item": [
+        {
+          "name": "Listar quartos",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/rooms"
+          }
+        },
+        {
+          "name": "Detalhar quarto",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/rooms/1"
+          }
+        },
+        {
+          "name": "Verificar disponibilidade (ocupado: false)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/rooms/1/availability?check_in=2022-12-01&check_out=2022-12-04"
+          }
+        },
+        {
+          "name": "Verificar disponibilidade (livre: true)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/rooms/1/availability?check_in=2026-12-01&check_out=2026-12-05"
+          }
+        },
+        {
+          "name": "Criar quarto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/rooms",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": 9101,\n  \"hotel_id\": 1,\n  \"name\": \"Quarto Teste Postman\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Atualizar quarto",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/rooms/9101",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Quarto Teste Postman (editado)\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Remover quarto",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/rooms/9101"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reserves",
+      "item": [
+        {
+          "name": "Listar reservas",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/reserves"
+          }
+        },
+        {
+          "name": "Detalhar reserva",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/reserves/1"
+          }
+        },
+        {
+          "name": "Criar reserva (deve dar 201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/reserves",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"hotel_id\": 1,\n  \"room_id\": 2,\n  \"check_in\": \"2026-12-01\",\n  \"check_out\": \"2026-12-05\",\n  \"guests\": [\n    { \"name\": \"Ana\", \"last_name\": \"Pereira\", \"phone\": \"5571999990000\" }\n  ],\n  \"dailies\": [\n    { \"date\": \"2026-12-01\", \"value\": 150 },\n    { \"date\": \"2026-12-02\", \"value\": 150 },\n    { \"date\": \"2026-12-03\", \"value\": 150 },\n    { \"date\": \"2026-12-04\", \"value\": 150 }\n  ],\n  \"payments\": [\n    { \"method\": 1, \"value\": 600 }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Criar reserva com conflito (deve dar 409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/reserves",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"hotel_id\": 1,\n  \"room_id\": 1,\n  \"check_in\": \"2022-12-02\",\n  \"check_out\": \"2022-12-06\",\n  \"guests\": [ { \"name\": \"Carlos\", \"last_name\": \"Souza\" } ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Criar reserva inválida (deve dar 422)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/reserves",
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          }
+        },
+        {
+          "name": "Remover reserva",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/reserves/1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Restaurants (Dijkstra)",
+      "item": [
+        {
+          "name": "Listar restaurantes",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/restaurants"
+          }
+        },
+        {
+          "name": "Detalhar restaurante",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/restaurants/1"
+          }
+        },
+        {
+          "name": "Recomendações para o hotel 1",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/hotels/1/restaurants/recommendations"
+          }
+        },
+        {
+          "name": "Recomendações filtradas por culinária",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/hotels/1/restaurants/recommendations?cuisine=italiana"
+          }
+        },
+        {
+          "name": "Recomendações com distância máxima",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/hotels/1/restaurants/recommendations?max_distance_km=2"
+          }
+        },
+        {
+          "name": "Cadastrar restaurante (cria o ponto no mapa)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/restaurants",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"node_name\": \"Restaurante Novo\",\n  \"name\": \"Restaurante Novo\",\n  \"cuisine\": \"brasileira\",\n  \"rating\": 4.5,\n  \"price_range\": \"$$\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Cadastrar rua (ligar o novo ponto ao mapa)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/city-graph/edges",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from_node_id\": 4,\n  \"to_node_id\": 12,\n  \"distance_km\": 0.6,\n  \"bidirectional\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "Cadastrar ponto do mapa (cruzamento)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/city-graph/nodes",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Rua Nova\",\n  \"type\": \"intersection\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Grafo da cidade (pontos e ruas)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/city-graph"
+          }
+        }
+      ]
+    }
+  ]
+}

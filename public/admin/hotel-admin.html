@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hotel API — Painel administrativo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#FAF8F4;--surface:#fff;--ink:#20281F;--soft:#5B6358;--border:#E4DFD4;
+--wood:#8B5E34;--wood-dark:#6F4A28;--teal:#3F6659;--danger:#B3432B;--danger-bg:#FBEAE4;--ok-bg:#EAF1EB;}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;font-size:14px}
+h1,h2,h3{font-family:'Fraunces',serif;font-weight:600;margin:0}
+.layout{display:flex;min-height:100vh}
+.sidebar{width:210px;flex-shrink:0;background:var(--wood-dark);color:#F4EEE4;padding:22px 14px}
+.sidebar h1{font-size:18px;color:#fff}.sidebar .tag{font-size:11px;color:#D9C8B2;margin-bottom:20px}
+.nav-btn{display:block;width:100%;text-align:left;background:none;border:none;color:#EFE6D8;padding:9px 11px;border-radius:7px;font-size:13px;cursor:pointer;font-family:inherit;margin-bottom:2px}
+.nav-btn:hover{background:rgba(255,255,255,.08)}.nav-btn.active{background:#fff;color:var(--wood-dark);font-weight:600}
+.main{flex:1;padding:24px 32px;max-width:1080px}
+.topbar{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:18px}
+.conn{display:flex;align-items:center;gap:7px}.conn input{border:1px solid var(--border);border-radius:7px;padding:7px 9px;font-size:12px;width:210px}
+.dot{width:8px;height:8px;border-radius:50%;background:#C7C0B2}.dot.ok{background:#4C8C5F}.dot.fail{background:var(--danger)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:16px}
+.card h2{font-size:17px;margin-bottom:12px}.card h3{font-size:13px;margin-bottom:8px;color:var(--soft)}
+table{width:100%;border-collapse:collapse;font-size:12.5px}th{text-align:left;color:var(--soft);font-weight:600;padding:7px 9px;border-bottom:1px solid var(--border)}
+td{padding:8px 9px;border-bottom:1px solid var(--border)}tr:last-child td{border-bottom:none}
+tr.clickable{cursor:pointer}tr.clickable:hover{background:#FAF6EF}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:9px;margin-bottom:10px}
+label{display:block;font-size:11px;color:var(--soft);margin-bottom:3px}
+input,select{width:100%;border:1px solid var(--border);border-radius:6px;padding:7px 8px;font-size:12.5px;background:#fff;font-family:inherit}
+button.btn{font-family:inherit;border:none;border-radius:7px;padding:8px 14px;font-size:12.5px;cursor:pointer;font-weight:600}
+.btn-primary{background:var(--wood);color:#fff}.btn-primary:hover{background:var(--wood-dark)}
+.btn-secondary{background:#EFEAE0;color:var(--ink)}.btn-danger{background:var(--danger-bg);color:var(--danger)}
+.btn-ghost{background:none;color:var(--soft);text-decoration:underline;padding:3px 0;font-size:12px}
+.row-actions button{padding:4px 9px;font-size:11px}
+.repeat-row{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:7px;margin-bottom:7px;align-items:end}
+.empty{color:var(--soft);font-style:italic;padding:12px 0}
+.badge{display:inline-block;padding:2px 7px;border-radius:99px;font-size:10.5px;font-weight:600}
+.badge.yes{background:var(--ok-bg);color:#386245}.badge.no{background:var(--danger-bg);color:var(--danger)}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--ink);color:#fff;padding:11px 16px;border-radius:8px;font-size:12.5px;max-width:340px;opacity:0;transform:translateY(8px);transition:.25s;pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}.toast.err{background:var(--danger)}
+.section{display:none}.section.active{display:block}
+.rec-item{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer}
+.rec-item:hover{background:#FAF6EF}.rec-item:last-child{border-bottom:none}
+.rec-item .name{font-weight:600}.rec-item .meta{font-size:11.5px;color:var(--soft)}
+.rec-item .dist{font-weight:600;color:var(--teal);white-space:nowrap;margin-left:10px}
+svg#map{width:100%;height:auto;border:1px solid var(--border);border-radius:8px;background:#fff}
+.hint{font-size:11.5px;color:var(--soft);margin-top:-4px;margin-bottom:12px}
+</style>
+</head>
+<body>
+<div class="layout">
+  <nav class="sidebar">
+    <h1>Hotel API</h1><div class="tag">Painel administrativo</div>
+    <button class="nav-btn active" data-s="hotels">Hotéis</button>
+    <button class="nav-btn" data-s="rooms">Quartos</button>
+    <button class="nav-btn" data-s="reserves">Reservas</button>
+    <button class="nav-btn" data-s="restaurants">Restaurantes (Dijkstra)</button>
+    <button class="nav-btn" data-s="import">Importar XML</button>
+  </nav>
+  <main class="main">
+    <div class="topbar">
+      <h2 id="title">Hotéis</h2>
+      <div class="conn"><span class="dot" id="dot"></span><input id="base-url" value="http://localhost:8000/api"><button class="btn btn-secondary" id="test-conn">Testar</button></div>
+    </div>
+    <div id="status" style="font-size:12px;color:var(--soft);margin-bottom:16px;">Clique em "Testar" pra conferir a conexão.</div>
+
+    <section class="section active" id="s-hotels">
+      <div class="card"><h3>Novo hotel</h3>
+        <form id="f-hotel"><div class="form-grid">
+          <div><label>ID</label><input name="id" type="number" required></div>
+          <div><label>Nome</label><input name="name" required></div>
+        </div><button class="btn btn-primary" type="submit">Salvar</button></form>
+      </div>
+      <div class="card"><h2>Hotéis</h2><div id="t-hotels"></div></div>
+    </section>
+
+    <section class="section" id="s-rooms">
+      <div class="card"><h3>Novo quarto</h3>
+        <form id="f-room"><div class="form-grid">
+          <div><label>ID</label><input name="id" type="number" required></div>
+          <div><label>Hotel ID</label><input name="hotel_id" type="number" required></div>
+          <div><label>Nome</label><input name="name" required></div>
+        </div><button class="btn btn-primary" type="submit">Salvar</button></form>
+      </div>
+      <div class="card"><h2>Quartos</h2><div id="t-rooms"></div></div>
+      <div class="card"><h3>Verificar disponibilidade</h3>
+        <form id="f-avail"><div class="form-grid">
+          <div><label>Room ID</label><input name="room_id" type="number" required></div>
+          <div><label>Check-in</label><input name="check_in" type="date" required></div>
+          <div><label>Check-out</label><input name="check_out" type="date" required></div>
+        </div><button class="btn btn-secondary" type="submit">Checar</button></form>
+        <div id="avail-result"></div>
+      </div>
+    </section>
+
+    <section class="section" id="s-reserves">
+      <div class="card"><h3>Nova reserva</h3>
+        <form id="f-reserve"><div class="form-grid">
+          <div><label>Hotel ID</label><input name="hotel_id" type="number" required></div>
+          <div><label>Room ID</label><input name="room_id" type="number" required></div>
+          <div><label>Hóspede (nome)</label><input name="g_name" required></div>
+          <div><label>Hóspede (sobrenome)</label><input name="g_last_name"></div>
+          <div><label>Check-in</label><input name="check_in" type="date" required></div>
+          <div><label>Check-out</label><input name="check_out" type="date" required></div>
+        </div>
+        <label>Diárias</label><div id="dailies-rows"></div>
+        <button type="button" class="btn-ghost" id="add-daily">+ diária</button>
+        <div style="margin-top:12px"><button class="btn btn-primary" type="submit">Criar reserva</button></div>
+        </form>
+      </div>
+      <div class="card"><h2>Reservas</h2><div id="t-reserves"></div></div>
+    </section>
+
+    <section class="section" id="s-restaurants">
+      <div class="card">
+        <h3>Recomendar restaurantes a partir de um hotel</h3>
+        <p class="hint">Calcula a rota mais curta (Dijkstra) do hotel até cada restaurante do mapa da cidade.</p>
+        <div class="form-grid">
+          <div><label>Hotel</label><select id="rec-hotel"><option value="1">1 — Hotel Foco Prime</option><option value="2">2 — Hotel Foco Beach</option><option value="3">3 — Hotel Foco Privillege</option></select></div>
+          <div><label>Culinária (opcional)</label><input id="rec-cuisine" placeholder="italiana"></div>
+          <div><label>Distância máx. km (opcional)</label><input id="rec-maxdist" type="number" step="0.1"></div>
+        </div>
+        <button class="btn btn-primary" id="rec-btn">Recomendar</button>
+      </div>
+      <div class="card">
+        <h2>Mapa da cidade</h2>
+        <p class="hint">Clique numa recomendação na lista para destacar a rota no mapa.</p>
+        <svg id="map" viewBox="0 0 560 420"></svg>
+      </div>
+      <div class="card"><h2>Recomendações</h2><div id="rec-list"></div></div>
+    </section>
+
+    <section class="section" id="s-import">
+      <div class="card"><h2>Importar XML</h2>
+        <p class="hint">Equivalente ao comando <code>php artisan import:xml</code> (agendado via CRON).</p>
+        <div style="display:flex;gap:9px;flex-wrap:wrap">
+          <button class="btn btn-primary" data-imp="all">Importar tudo</button>
+          <button class="btn btn-secondary" data-imp="hotels">Hotéis</button>
+          <button class="btn btn-secondary" data-imp="rooms">Quartos</button>
+          <button class="btn btn-secondary" data-imp="reserves">Reservas</button>
+        </div>
+        <pre id="imp-result" style="margin-top:14px;background:#F4F1EA;padding:12px;border-radius:7px;font-size:11.5px;"></pre>
+      </div>
+    </section>
+  </main>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const $=(s,e=document)=>e.querySelector(s), $$=(s,e=document)=>[...e.querySelectorAll(s)];
+const base=()=>$('#base-url').value.replace(/\/+$/,'');
+function toast(m,err){const t=$('#toast');t.textContent=m;t.className='toast show'+(err?' err':'');clearTimeout(t._tm);t._tm=setTimeout(()=>t.classList.remove('show'),3000);}
+async function api(path,opt={}){
+  const r=await fetch(base()+path,{headers:{'Content-Type':'application/json','Accept':'application/json',...(opt.headers||{})},...opt});
+  let b=null;try{b=await r.json()}catch(e){}
+  if(!r.ok) throw new Error((b&&(b.message||JSON.stringify(b.errors)))||('Erro HTTP '+r.status));
+  return b;
+}
+const titles={hotels:'Hotéis',rooms:'Quartos',reserves:'Reservas',restaurants:'Restaurantes (Dijkstra)',import:'Importar XML'};
+$$('.nav-btn').forEach(b=>b.addEventListener('click',()=>{
+  $$('.nav-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');
+  $$('.section').forEach(x=>x.classList.remove('active'));$('#s-'+b.dataset.s).classList.add('active');
+  $('#title').textContent=titles[b.dataset.s];
+  if(b.dataset.s==='hotels')loadHotels(); if(b.dataset.s==='rooms')loadRooms(); if(b.dataset.s==='reserves')loadReserves();
+  if(b.dataset.s==='restaurants')drawMap([]);
+}));
+$('#test-conn').addEventListener('click',async()=>{
+  const d=$('#dot'),s=$('#status');
+  try{await api('/hotels');d.className='dot ok';s.textContent='Conectado em '+base();}
+  catch(e){d.className='dot fail';s.textContent='Falha: '+e.message;}
+});
+
+function renderTable(el,rows,cols,onClick,onDel){
+  if(!rows||!rows.length){el.innerHTML='<div class="empty">Sem registros ainda.</div>';return;}
+  const head=cols.map(c=>`<th>${c.l}</th>`).join('')+'<th></th>';
+  const body=rows.map(r=>`<tr class="clickable" data-id="${r.id}">${cols.map(c=>`<td>${c.r?c.r(r):(r[c.k]??'')}</td>`).join('')}<td><button class="btn btn-danger" data-del="${r.id}">Excluir</button></td></tr>`).join('');
+  el.innerHTML=`<table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
+  if(onClick)$$('tr.clickable',el).forEach(tr=>tr.addEventListener('click',e=>{if(e.target.closest('[data-del]'))return;onClick(rows.find(r=>String(r.id)===tr.dataset.id));}));
+  if(onDel)$$('[data-del]',el).forEach(b=>b.addEventListener('click',()=>onDel(b.dataset.del)));
+}
+function formObj(f){const o={};$$('input,select',f).forEach(i=>{if(i.name)o[i.name]=i.value;});return o;}
+function fill(sel,row){const f=$(sel);Object.keys(row).forEach(k=>{if(f.elements[k])f.elements[k].value=row[k];});}
+
+// Hotels
+async function loadHotels(){try{const rows=await api('/hotels');renderTable($('#t-hotels'),rows,[{l:'ID',k:'id'},{l:'Nome',k:'name'},{l:'Quartos',r:r=>(r.rooms||[]).length}],r=>fill('#f-hotel',r),delHotel);}catch(e){toast(e.message,true);}}
+$('#f-hotel').addEventListener('submit',async e=>{e.preventDefault();const d=formObj(e.target);try{const ex=await api('/hotels/'+d.id).catch(()=>null);if(ex)await api('/hotels/'+d.id,{method:'PUT',body:JSON.stringify({name:d.name})});else await api('/hotels',{method:'POST',body:JSON.stringify(d)});toast('Hotel salvo.');e.target.reset();loadHotels();}catch(e){toast(e.message,true);}});
+async function delHotel(id){if(!confirm('Excluir hotel '+id+'?'))return;try{await api('/hotels/'+id,{method:'DELETE'});toast('Removido.');loadHotels();}catch(e){toast(e.message,true);}}
+
+// Rooms
+async function loadRooms(){try{const rows=await api('/rooms');renderTable($('#t-rooms'),rows,[{l:'ID',k:'id'},{l:'Hotel',k:'hotel_id'},{l:'Nome',k:'name'}],r=>fill('#f-room',r),delRoom);}catch(e){toast(e.message,true);}}
+$('#f-room').addEventListener('submit',async e=>{e.preventDefault();const d=formObj(e.target);try{const ex=await api('/rooms/'+d.id).catch(()=>null);if(ex)await api('/rooms/'+d.id,{method:'PUT',body:JSON.stringify(d)});else await api('/rooms',{method:'POST',body:JSON.stringify(d)});toast('Quarto salvo.');e.target.reset();loadRooms();}catch(e){toast(e.message,true);}});
+async function delRoom(id){if(!confirm('Excluir quarto '+id+'?'))return;try{await api('/rooms/'+id,{method:'DELETE'});toast('Removido.');loadRooms();}catch(e){toast(e.message,true);}}
+$('#f-avail').addEventListener('submit',async e=>{e.preventDefault();const d=formObj(e.target);const box=$('#avail-result');try{const r=await api(`/rooms/${d.room_id}/availability?check_in=${d.check_in}&check_out=${d.check_out}`);box.innerHTML=r.available?'<span class="badge yes">Disponível</span>':'<span class="badge no">Indisponível</span>';}catch(e){toast(e.message,true);}});
+
+// Reserves
+function addDailyRow(){const d=document.createElement('div');d.className='repeat-row';d.innerHTML='<div><label>Data</label><input name="date" type="date"></div><div><label>Valor</label><input name="value" type="number" step="0.01"></div><div></div><button type="button" class="btn-ghost">✕</button>';d.querySelector('button').addEventListener('click',()=>d.remove());$('#dailies-rows').appendChild(d);}
+addDailyRow();
+$('#add-daily').addEventListener('click',addDailyRow);
+async function loadReserves(){try{const rows=await api('/reserves');renderTable($('#t-reserves'),rows,[{l:'ID',k:'id'},{l:'Quarto',k:'room_id'},{l:'Check-in',k:'check_in'},{l:'Check-out',k:'check_out'},{l:'Total',r:r=>'R$ '+Number(r.total).toFixed(2)}],null,delReserve);}catch(e){toast(e.message,true);}}
+$('#f-reserve').addEventListener('submit',async e=>{
+  e.preventDefault();const d=formObj(e.target);
+  const dailies=$$('#dailies-rows .repeat-row').map(row=>{const i=$$('input',row);return{date:i[0].value,value:Number(i[1].value)};}).filter(x=>x.date&&x.value);
+  const payload={hotel_id:Number(d.hotel_id),room_id:Number(d.room_id),check_in:d.check_in,check_out:d.check_out,guests:[{name:d.g_name,last_name:d.g_last_name}],dailies};
+  try{await api('/reserves',{method:'POST',body:JSON.stringify(payload)});toast('Reserva criada.');e.target.reset();$('#dailies-rows').innerHTML='';addDailyRow();loadReserves();}catch(e){toast(e.message,true);}
+});
+async function delReserve(id){if(!confirm('Cancelar reserva '+id+'?'))return;try{await api('/reserves/'+id,{method:'DELETE'});toast('Cancelada.');loadReserves();}catch(e){toast(e.message,true);}}
+
+// Import
+$$('[data-imp]').forEach(b=>b.addEventListener('click',async()=>{try{const r=await api('/import/'+b.dataset.imp,{method:'POST'});$('#imp-result').textContent=JSON.stringify(r,null,2);toast('Importado.');}catch(e){toast(e.message,true);}}));
+
+// Restaurants + mapa (Dijkstra)
+const NODE_POS={1:[70,50],2:[470,250],3:[70,400],4:[210,140],5:[370,180],6:[210,290],7:[210,50],8:[470,120],9:[340,50],10:[90,290],11:[390,290]};
+const EDGES=[[1,4],[2,5],[3,6],[4,5],[4,6],[4,7],[5,8],[5,6],[6,9],[6,10],[7,9],[8,11],[9,11],[10,11]];
+let NODE_NAMES={};
+async function ensureGraphNames(){if(Object.keys(NODE_NAMES).length)return;try{const g=await api('/city-graph');NODE_NAMES={};g.nodes.forEach(n=>NODE_NAMES[n.id]=n.name);}catch(e){}}
+function drawMap(pathIds){
+  const svg=$('#map');const path=new Set();
+  for(let i=0;i<pathIds.length-1;i++){path.add(pathIds[i]+'-'+pathIds[i+1]);path.add(pathIds[i+1]+'-'+pathIds[i]);}
+  let html='';
+  EDGES.forEach(([a,b])=>{const on=path.has(a+'-'+b);const p1=NODE_POS[a],p2=NODE_POS[b];
+    html+=`<line x1="${p1[0]}" y1="${p1[1]}" x2="${p2[0]}" y2="${p2[1]}" stroke="${on?'#3F6659':'#E4DFD4'}" stroke-width="${on?4:2}"/>`;});
+  Object.entries(NODE_POS).forEach(([id,pos])=>{const on=pathIds.includes(Number(id));
+    html+=`<circle cx="${pos[0]}" cy="${pos[1]}" r="${on?9:6}" fill="${on?'#8B5E34':'#A9A194'}"/>`;
+    html+=`<text x="${pos[0]+10}" y="${pos[1]+4}" font-size="11" font-family="Inter,sans-serif" fill="#20281F">${NODE_NAMES[id]||id}</text>`;});
+  svg.innerHTML=html;
+}
+$('#rec-btn').addEventListener('click',async()=>{
+  await ensureGraphNames();
+  const hotel=$('#rec-hotel').value,cuisine=$('#rec-cuisine').value,maxd=$('#rec-maxdist').value;
+  let q=[];if(cuisine)q.push('cuisine='+encodeURIComponent(cuisine));if(maxd)q.push('max_distance_km='+maxd);
+  try{
+    const list=await api(`/hotels/${hotel}/restaurants/recommendations${q.length?'?'+q.join('&'):''}`);
+    if(!list.length){$('#rec-list').innerHTML='<div class="empty">Nenhum restaurante encontrado com esses filtros.</div>';drawMap([]);return;}
+    $('#rec-list').innerHTML='';
+    list.forEach((r,idx)=>{
+      const div=document.createElement('div');div.className='rec-item';
+      div.innerHTML=`<div><div class="name">${r.restaurant.name}</div><div class="meta">${r.restaurant.cuisine} · nota ${r.restaurant.rating} · ${r.restaurant.price_range}</div></div><div class="dist">${r.distance_km} km</div>`;
+      div.addEventListener('click',()=>drawMap(r.route_node_ids));
+      $('#rec-list').appendChild(div);
+      if(idx===0)drawMap(r.route_node_ids);
+    });
+    toast('Recomendações calculadas via Dijkstra.');
+  }catch(e){toast(e.message,true);}
+});
+
+if(location.protocol.startsWith('http'))$('#base-url').value=location.origin+'/api';
+$('#test-conn').click();loadHotels();drawMap([]);
+</script>
+</body>
+</html>
