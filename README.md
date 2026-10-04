@@ -1,4 +1,4 @@
-﻿# Hotel API
+# Hotel API
 
 API REST para gestão de quartos e reservas de hotel. Ela importa hotéis, quartos e reservas a partir de arquivos XML (via comando agendado), expõe CRUD de hotéis e quartos, cria reservas impedindo períodos sobrepostos no mesmo quarto e recomenda restaurantes próximos ao hotel calculando a menor rota com o algoritmo de Dijkstra.
 
