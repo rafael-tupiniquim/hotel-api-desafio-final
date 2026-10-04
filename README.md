@@ -61,7 +61,7 @@ docker compose exec app php artisan test
 composer install
 cp .env.example .env
 php artisan key:generate
-# ajuste as variáveis DB_* do .env para o seu MySQL (veja a próxima seção)
+# ajuste as variáveis DB_* do .env para o seu MySQL ou use SQLite (veja a próxima seção)
 php artisan migrate
 php artisan db:seed
 php artisan serve
@@ -92,7 +92,11 @@ SESSION_DRIVER=array
 QUEUE_CONNECTION=sync
 ```
 
-Para rodar sem MySQL, use SQLite: execute `touch database/database.sqlite` e troque as variáveis de banco por `DB_CONNECTION=sqlite` e `DB_DATABASE=database/database.sqlite`.
+Para rodar sem MySQL (por exemplo, se o PHP não tiver a extensão `pdo_mysql`), use SQLite:
+
+1. Crie o arquivo do banco: `touch database/database.sqlite` (Linux/macOS) ou `New-Item database/database.sqlite` (PowerShell).
+2. No `.env`, defina `DB_CONNECTION=sqlite` e remova as demais variáveis `DB_*` (`DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`).
+3. Rode `php artisan migrate --seed`.
 
 As credenciais acima são apenas para desenvolvimento local e existem também no `docker-compose.yml`. Não as reutilize em outros ambientes.
 

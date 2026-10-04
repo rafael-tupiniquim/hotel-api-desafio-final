@@ -14,3 +14,7 @@ yarn-error.log
 /public/storage
 /storage/*.key
 database/database.sqlite
+
+.claude/
+/storage/logs/*.log
+/storage/framework/views/*.php
