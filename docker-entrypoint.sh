@@ -19,4 +19,7 @@ echo "MySQL pronto."
 php artisan migrate --force
 php artisan db:seed --force
 
-exec php artisan serve --host=0.0.0.0 --port=8000
+# --no-reload: sem ele, como existe um .env, o "artisan serve" remove do
+# processo do servidor as variáveis definidas no docker-compose.yml, e as
+# requisições HTTP passam a usar DB_HOST=127.0.0.1 do .env em vez de "mysql".
+exec php artisan serve --host=0.0.0.0 --port=8000 --no-reload
