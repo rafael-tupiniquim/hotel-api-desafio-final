@@ -23,6 +23,11 @@
         <env name="CACHE_STORE" value="array"/>
         <env name="DB_CONNECTION" value="sqlite" force="true"/>
         <env name="DB_DATABASE" value=":memory:" force="true"/>
+        <!-- No Docker, DB_CONNECTION/DB_DATABASE chegam como variáveis de ambiente
+             reais, que o PHP expõe em $_SERVER, e o Laravel lê $_SERVER antes de
+             $_ENV. Sem estas linhas os testes rodariam (e apagariam) o MySQL. -->
+        <server name="DB_CONNECTION" value="sqlite" force="true"/>
+        <server name="DB_DATABASE" value=":memory:" force="true"/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
