@@ -44,7 +44,12 @@ Route::get('rooms/{room}/availability', [RoomController::class, 'availability'])
 Route::apiResource('rooms', RoomController::class);
 
 // Reservas (a criação valida a disponibilidade do quarto)
-Route::apiResource('reserves', ReserveController::class)->except(['update']);
+// O nome do parâmetro é explícito: o Laravel singularizaria "reserves" como
+// "reserf", que não casa com o $reserve do controller e quebra o route model
+// binding (show devolveria uma reserva vazia e destroy não removeria nada).
+Route::apiResource('reserves', ReserveController::class)
+    ->except(['update'])
+    ->parameters(['reserves' => 'reserve']);
 
 // Restaurantes e recomendação por proximidade (Dijkstra)
 Route::get('restaurants', [RestaurantController::class, 'index']);

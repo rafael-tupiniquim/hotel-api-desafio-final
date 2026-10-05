@@ -45,6 +45,38 @@ class ReserveApiTest extends TestCase
         ]);
     }
 
+    public function test_it_shows_a_reserve_with_its_details(): void
+    {
+        $hotel = Hotel::factory()->create();
+        $room = Room::factory()->create(['hotel_id' => $hotel->id]);
+        $id = $this->postJson('/api/reserves', $this->payload($hotel, $room))->json('id');
+
+        $this->getJson("/api/reserves/{$id}")
+            ->assertOk()
+            ->assertJsonPath('id', $id)
+            ->assertJsonPath('room_id', $room->id)
+            ->assertJsonPath('guests.0.name', 'Joao')
+            ->assertJsonCount(2, 'dailies');
+    }
+
+    public function test_showing_an_unknown_reserve_returns_404(): void
+    {
+        $this->getJson('/api/reserves/999')->assertNotFound();
+    }
+
+    public function test_it_deletes_a_reserve_and_frees_the_room(): void
+    {
+        $hotel = Hotel::factory()->create();
+        $room = Room::factory()->create(['hotel_id' => $hotel->id]);
+        $id = $this->postJson('/api/reserves', $this->payload($hotel, $room))->json('id');
+
+        $this->deleteJson("/api/reserves/{$id}")->assertNoContent();
+
+        $this->assertDatabaseMissing('reserves', ['id' => $id]);
+        $this->getJson("/api/rooms/{$room->id}/availability?check_in=2026-04-10&check_out=2026-04-12")
+            ->assertJsonPath('available', true);
+    }
+
     public function test_it_rejects_a_reserve_that_overlaps_an_existing_one(): void
     {
         $hotel = Hotel::factory()->create();
