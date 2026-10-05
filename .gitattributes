@@ -1,0 +1,5 @@
+# Scripts executados dentro do container Linux precisam de quebras de linha LF.
+# Sem isso, o Git no Windows (core.autocrlf=true) faz o checkout com CRLF, a
+# primeira linha vira "#!/bin/sh\r" e o container falha ao iniciar com
+# "exec docker-entrypoint.sh: no such file or directory".
+*.sh text eol=lf
