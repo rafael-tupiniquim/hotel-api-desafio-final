@@ -3,7 +3,10 @@ set -e
 
 echo "Aguardando o MySQL em ${DB_HOST:-mysql}:${DB_PORT:-3306}..."
 attempt=0
-until mysqladmin ping -h "${DB_HOST:-mysql}" -P "${DB_PORT:-3306}" -u"${DB_USERNAME:-root}" -p"${DB_PASSWORD:-secret}" --silent; do
+# --skip-ssl: o cliente MariaDB da imagem (Debian trixie) exige certificado
+# válido por padrão e recusa o autoassinado do MySQL 8. É só um teste de
+# disponibilidade na rede interna do Docker; o Laravel conecta via pdo_mysql.
+until mysqladmin ping --skip-ssl -h "${DB_HOST:-mysql}" -P "${DB_PORT:-3306}" -u"${DB_USERNAME:-root}" -p"${DB_PASSWORD:-secret}" --silent; do
     attempt=$((attempt + 1))
     if [ "$attempt" -ge 30 ]; then
         echo "MySQL não respondeu a tempo. Abortando."
